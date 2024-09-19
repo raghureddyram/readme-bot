@@ -1,27 +1,19 @@
-
-
-
-
-import GreptileService from './_greptileService';
+import GreptileService from '../../../lib/greptileService';
 const greptileService = new GreptileService();
 
+// check for a greptile index
 export default async function handler(req: any, res: any) { // eslint-disable-line
   if (req.method === 'GET') {
     const { repoId } = req.query;
 
-    
-
     try {
-        const readmeHistory = await greptileService.checkReadmeHistory(repoId)
-        // const indexResponse = await greptileService.checkIndexStatus(repoId)
-        res.status(200).json(readmeHistory.data);
+        const response = await greptileService.checkIndexStatus(repoId)
 
-        // if (indexResponse.data.status === "completed"){
-        //     res.status(200).json(indexResponse.data);
-        // }   else {
-        //     const indexing = await greptileService.indexRepository(repoId);
-        //     res.status(200).json(indexing.data);
-        // }
+        if(response.data.status !== 'complete'){
+            // non blocking index call
+            greptileService.indexRepository(repoId)
+        }
+        res.status(200).json(response.data.status);
     } catch (error) {
       res.status(500).json({ error, message: "Failed to load" });
     }
