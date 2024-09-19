@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Readme {
+  id            Int           @id @default(autoincrement())
+  content       String
+  project       Project       @relation(fields: [projectId], references: [id])
+  projectId     Int
+  lastUpdated   DateTime      @updatedAt
+  createdAt     DateTime      @default(now())
+  setupSteps    SetupSteps[]  
+  testingSteps  TestingSteps[] 
+  readmeChanges ReadmeChanges[]
+}
+
+model ReadmeChanges {
+  id          Int       @id @default(autoincrement())
+  readme      Readme    @relation(fields: [readmeId], references: [id])
+  readmeId    Int
+  contentDiff String
+  changedBy   GitHubUser @relation(fields: [githubUserId], references: [id])
+  githubUserId Int
+  changeType  String
+  timestamp   DateTime  @default(now())
+}
+
+
+model GitHubUser {
+  id                Int       @id @default(autoincrement())
+  githubUsername    String    @unique
+  email             String?
+  contributionsCount Int      @default(0)
+  readmeChanges     ReadmeChanges[]
+}
+
+model Project {
+  id          Int          @id @default(autoincrement())
+  name        String
+  repoUrl     String
+  readmes     Readme[]
+  setupSteps  SetupSteps[]
+  testingSteps TestingSteps[]
+}
+
+
+model SetupSteps {
+  id          Int       @id @default(autoincrement())
+  project     Project   @relation(fields: [projectId], references: [id])
+  projectId   Int
+  stepOrder   Int
+  description String
+  isRequired  Boolean
+  readme      Readme?   @relation(fields: [readmeId], references: [id])
+  readmeId    Int?
+}
+
+model TestingSteps {
+  id          Int       @id @default(autoincrement())
+  project     Project   @relation(fields: [projectId], references: [id])
+  projectId   Int
+  stepOrder   Int
+  description String
+  isRequired  Boolean
+  readme      Readme?   @relation(fields: [readmeId], references: [id])
+  readmeId    Int?
+}
