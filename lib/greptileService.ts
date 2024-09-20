@@ -51,7 +51,7 @@ class GreptileService {
     public async getReadmeRelatedSummaries(repoId: string, branch: string = 'main', githubUsername: string = this.githubUsername): Promise<AxiosResponse<any, any>> {
         const greptileQuery = "Show me changes a developer would like to know about, ie what should go into the README.md";
         try {
-            const readmeFromQuery = await this.baseQuery(repoId, branch, githubUsername, greptileQuery);
+            const readmeFromQuery = await this.baseQuery('readme-related-summaries', repoId, branch, githubUsername, greptileQuery);
             const summaries = readmeFromQuery.data?.sources.map((source: any) => (source.summary) )
             return summaries;
         } catch (error: any) {
@@ -60,12 +60,12 @@ class GreptileService {
         }
     }
 
-    public async baseQuery(repoId: string, branch: string = 'main', githubUsername: string = this.githubUsername, query: string = ''): Promise<AxiosResponse<any, any>> {
+    public async baseQuery(greptileQueryIdentifier: string, repoId: string, branch: string = 'main', githubUsername: string = this.githubUsername, query: string = ''): Promise<AxiosResponse<any, any>> {
         try {
             const queryPayload = {
                 messages: [
                     {
-                        id: "readme-history-query",
+                        id: greptileQueryIdentifier,
                         content: query,
                         role: "user",
                     },
@@ -90,7 +90,7 @@ class GreptileService {
                     },
                 }
             );
-            console.log('README History:', response);
+            console.log('Greptile query output:', response);
             return response;
         } catch (error: any) {
             this.logError('Error fetching README history', error);
