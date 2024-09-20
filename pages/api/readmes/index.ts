@@ -1,11 +1,11 @@
-import GreptileService from '../../lib/greptileService'
-const greptileService = new GreptileService();
+import GreptileService from '../../../lib/services/greptileService'
 import { stringify } from 'flatted';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { formatMarkdown } from '@/lib/utils';
-import S3Uploader from '@/lib/s3uploaderService';
-import CommitSummarizer from '@/lib/readmeCommitSummarizer';
+import { S3Retriever, S3Uploader } from '@/lib/services/s3Services';
+import CommitSummarizer from '@/lib/githubCommitSummarizer';
+const greptileService = new GreptileService();
 
 
 export default async function handler(req: any, res: any) { // eslint-disable-line
@@ -14,17 +14,25 @@ export default async function handler(req: any, res: any) { // eslint-disable-li
     const commitSummarizer = new CommitSummarizer(repoId, branch)
 
     try {
+        const retriever = new S3Retriever()
+        const pathPrefix = `${repoId}/${branch}/`
+        const lastS3file = await retriever.getLastReadme(pathPrefix)
+        
+
         let result = await commitSummarizer.summarizeChanges() || {summary: '', hasReadme: false}
+        // if user manually touched their README.md in the last change return early, don't want to overwrite
+        result.hasReadme = false
         
         if(!result.hasReadme) {
-           const lastChangeSummary = result.summary
-          // check for last generated version of readme from DB. Check by githubuser:repoId
-
-          // if no generated version, generate
-            const summaries = await greptileService.getReadmeRelatedSummaries(repoId, branch)
-            const readmePrompt = `Given a list of change summaries, please provide a README.md file. Key considerations: prerequesites, How to setup, how to run, how to test, sample table relationships, architectural choices.
+            const lastChangeSummary = result.summary
+           
+            // check for last generated version of readme from DB. Check based on what is in s3
+            // if no generated version, generate based on changes
+            const summaries = lastS3file || await greptileService.getReadmeRelatedSummaries(repoId, branch)
+            const readmePrompt = `Given a list of change summaries/existing README.md, please provide a README.md file.
+            Key considerations: prerequesites, How to setup, how to run, how to test, sample table relationships, architectural choices, possible enhancements
             \n\n
-            These are the summaries: ${summaries}.
+            These are the summaries/existing_readme: ${summaries}.
             This is the change summary of the last update made: ${lastChangeSummary}
             `
             const readmeFromQuery = await greptileService.baseQuery('readme-history-query', repoId, branch, undefined, readmePrompt);

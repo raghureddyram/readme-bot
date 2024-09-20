@@ -1,5 +1,5 @@
 import axios from 'axios';
-import GreptileService from './greptileService';
+import GreptileService from './services/greptileService';
 
 type CommitDiff = {
     diff: string,

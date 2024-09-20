@@ -1,4 +1,4 @@
-import GreptileService from '../../../lib/greptileService';
+import GreptileService from '../../../lib/services/greptileService';
 const greptileService = new GreptileService();
 
 // check for a greptile index
