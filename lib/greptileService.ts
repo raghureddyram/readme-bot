@@ -33,9 +33,9 @@ class GreptileService {
     }
 
     public async checkIndexStatus(repoId: string, githubUsername: string = this.githubUsername, branch: string = 'main'): Promise<AxiosResponse<any, any>> {
-        const repositoryIdentifier = encodeURIComponent(`github:${branch}:${githubUsername}/${repoId}`);
+        const greptileIdentifier = encodeURIComponent(`github:${branch}:${githubUsername}/${repoId}`);
         try {
-            const response = await axios.get(`${this.baseUrl}/repositories/${repositoryIdentifier}`, {
+            const response = await axios.get(`${this.baseUrl}/repositories/${greptileIdentifier}`, {
                 headers: {
                     Authorization: `Bearer ${this.apiKey}`,
                     'X-Github-Token': this.githubToken,
