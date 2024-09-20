@@ -4,6 +4,7 @@ import { stringify } from 'flatted';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { formatMarkdown } from '@/lib/utils';
+import S3Uploader from '@/lib/s3uploaderService';
 import CommitSummarizer from '@/lib/readmeCommitSummarizer';
 
 
@@ -32,11 +33,15 @@ export default async function handler(req: any, res: any) { // eslint-disable-li
               const markdownText = formatMarkdown(readmeFromQuery.data.message)
 
               const dirPath = path.join(process.cwd(), '_generatedFiles');
+              const fileName = `${new Date().toISOString()}.README.md`
               
-              const filePath = path.join(process.cwd(), '_generatedFiles', `README-${new Date().toISOString()}.md`);
+              const filePath = path.join(process.cwd(), '_generatedFiles', fileName);
               // Ensure that the directories exist
               await fs.mkdir(dirPath, { recursive: true });
               await fs.writeFile(filePath, markdownText, 'utf8');
+
+              const s3uploader = new S3Uploader()
+              s3uploader.uploadFile(markdownText, `${repoId}/${branch}/${fileName}`)
 
 
               res.status(200).json({data: "file created succefully"});  
