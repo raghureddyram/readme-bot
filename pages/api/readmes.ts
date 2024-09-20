@@ -3,7 +3,7 @@ const greptileService = new GreptileService();
 import { stringify } from 'flatted';
 import path from 'path';
 import { promises as fs } from 'fs';
-import { formatMarkdown } from '@/lib/makdown';
+import { formatMarkdown } from '@/lib/utils';
 import CommitSummarizer from '@/lib/readmeCommitSummarizer';
 
 

@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 export function formatMarkdown(text: string): string {
     // Replace escaped characters and format the text for markdown
     let formattedData = text;
@@ -12,4 +14,15 @@ export function formatMarkdown(text: string): string {
     formattedData = formattedData.replace(/\\\\/g, '\\');
   
     return formattedData;
+}
+
+export function generateGitSha(input: string): string {
+  // Create a SHA-1 hash
+  const hash = crypto.createHash('sha1');
+  
+  // Update the hash with input (could be anything like file content, commit message, etc.)
+  hash.update(input);
+  
+  // Finalize the hash and return it as a hex string
+  return hash.digest('hex');
 }
