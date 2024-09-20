@@ -1,6 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
 
-
 class GreptileService {
     private baseUrl: string = 'https://api.greptile.com/v2';
 
@@ -27,7 +26,7 @@ class GreptileService {
                 }
             );
             return response;
-        } catch (error: any) {  // eslint-disable-line
+        } catch (error) { 
             this.logError('Error indexing repository', error);
             throw error;
         }
@@ -50,8 +49,9 @@ class GreptileService {
     }
 
     public async getReadmeRelatedSummaries(repoId: string, branch: string = 'main', githubUsername: string = this.githubUsername): Promise<AxiosResponse<any, any>> {
+        const greptileQuery = "Show me changes a developer would like to know about, ie what should go into the README.md";
         try {
-            const readmeFromQuery = await this.baseQuery(repoId, branch, githubUsername);
+            const readmeFromQuery = await this.baseQuery(repoId, branch, githubUsername, greptileQuery);
             const summaries = readmeFromQuery.data?.sources.map((source: any) => (source.summary) )
             return summaries;
         } catch (error: any) {
@@ -60,9 +60,7 @@ class GreptileService {
         }
     }
 
-    public async baseQuery(repoId: string, branch: string = 'main', githubUsername: string = this.githubUsername, query: string = "Show me changes affecting the main README.md"): Promise<AxiosResponse<any, any>> {
-        const repositoryIdentifier = encodeURIComponent(`github:${branch}:${githubUsername}/${repoId}`);
-
+    public async baseQuery(repoId: string, branch: string = 'main', githubUsername: string = this.githubUsername, query: string = ''): Promise<AxiosResponse<any, any>> {
         try {
             const queryPayload = {
                 messages: [
@@ -93,9 +91,7 @@ class GreptileService {
                 }
             );
             console.log('README History:', response);
-            return response;  // Assuming this API returns a diff of the README history
-            
-            // Logic for storing or processing the README history can be added here
+            return response;
         } catch (error: any) {
             this.logError('Error fetching README history', error);
             throw error;
