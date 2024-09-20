@@ -13,9 +13,8 @@ export default async function handler(req: any, res: any) { // eslint-disable-li
     const commitSummarizer = new CommitSummarizer(repoId, branch)
 
     try {
-        
         let result = await commitSummarizer.summarizeChanges() || {summary: '', hasReadme: false}
-        result.hasReadme = false
+        
         if(!result.hasReadme) {
            const lastChangeSummary = result.summary
           // check for last generated version of readme from DB
