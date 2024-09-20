@@ -17,7 +17,7 @@ export default async function handler(req: any, res: any) { // eslint-disable-li
         
         if(!result.hasReadme) {
            const lastChangeSummary = result.summary
-          // check for last generated version of readme from DB
+          // check for last generated version of readme from DB. Check by githubuser:repoId
 
           // if no generated version, generate
             const summaries = await greptileService.getReadmeRelatedSummaries(repoId, branch)

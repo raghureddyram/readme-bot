@@ -12,6 +12,9 @@ export function formatMarkdown(text: string): string {
   
     // Handle backslashes for code blocks (escaped twice in JSON)
     formattedData = formattedData.replace(/\\\\/g, '\\');
+
+    formattedData = formattedData.replace(/```markdown/g, '');
+    formattedData = formattedData.replace(/```/g, '');
   
     return formattedData;
 }
