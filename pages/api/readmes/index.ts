@@ -10,7 +10,6 @@ import { findBranch } from '../_repositories/Branch';
 import { findRepo } from '../_repositories/Repo';
 import { createReadme } from '../_repositories/Readme'
 
-const prisma = new PrismaClient();  // Initialize Prisma client
 const greptileService = new GreptileService();
 
 export default async function handler(req: any, res: any) {
@@ -21,9 +20,11 @@ export default async function handler(req: any, res: any) {
     }
     // Step: Create the Readme record in the database
     const repo = await findRepo(repoName)
+    if(!repo){
+      return res.status(422).json("Please ensure greptile indexing succeeds first. Index by posting to /api/greptile-indexes")
+    }
     const branch = await findBranch(repo.id, branchName)
-   
-    if(!repo || !branch) {
+    if(!branch) {
       return res.status(422).json("Please ensure greptile indexing succeeds first. Index by posting to /api/greptile-indexes")
     }
 
@@ -45,14 +46,14 @@ export default async function handler(req: any, res: any) {
         const lastChangeSummary = result.summary;
 
         // Check for the last generated version of the readme from DB. If no generated version exists, generate one.
-        const summaries = lastS3file || await greptileService.getReadmeRelatedSummaries(repoName, branchName);
+        const summaries = lastS3file || await greptileService.getReadmeRelatedSummaries(repoName, branchName, result.latestCommit);
         const readmePrompt = `Given a list of change summaries/existing README.md, please provide a README.md file.
         Key considerations: prerequesites, How to setup, how to run, how to test, sample table relationships, architectural choices, possible enhancements.
         \n\n
         These are the summaries/existing_readme: ${summaries}.
         This is the change summary of the last update made: ${lastChangeSummary}`;
         
-        const readmeFromQuery = await greptileService.baseQuery('readme-history-query', repo.name, branch.name, githubUsername, readmePrompt);
+        const readmeFromQuery = await greptileService.baseQuery(`readme-history-query${result.latestCommit}`, repo.name, branch.name, githubUsername, readmePrompt);
         
         if (readmeFromQuery.data.sources) {
             const markdownText = formatMarkdown(readmeFromQuery.data.message);

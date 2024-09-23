@@ -10,9 +10,7 @@ datasource db {
 model Repo {
   id               Int      @id @default(autoincrement())
   name             String   @unique // Repo name should be unique
-  backendLanguage  String?
-  frontendLanguage String?
-  branchNamees         Branch[] // A repo can have multiple branchNamees
+  branches         Branch[] // A repo can have multiple branchNames
 }
 
 model Branch {

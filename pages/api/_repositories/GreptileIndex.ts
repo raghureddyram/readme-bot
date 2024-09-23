@@ -22,11 +22,16 @@ export async function findOrCreateGreptileIndex(repoName: string, branchName: st
     }
 
     // Step 3: Create a GreptileIndex for the Branch
-    let greptileIndex = await prisma.greptileIndex.findUnique({
-      where: {
-        branchId: branch.id
-      },
-    });
+    let greptileIndex;
+    if(branch && branch.id){
+      greptileIndex = await prisma.greptileIndex.findUnique({
+        where: {
+          branchId: branch.id
+        },
+      });
+    } else {
+      throw new Error("unable to create greptile Index")
+    }
 
     if(!greptileIndex){
       greptileIndex = await prisma.greptileIndex.create({

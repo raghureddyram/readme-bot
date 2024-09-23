@@ -83,12 +83,12 @@ class CommitSummarizer {
     }
 
     // Summarize the diff using Greptile
-    private async summarizeDiff(diffText: string): Promise<string> {
+    private async summarizeDiff(diffText: string, latestCommit: string): Promise<string> {
         const greptileService = new GreptileService();
         const prompt = `Summarize the following git diff:\n\n${diffText}`;
 
         try {
-            const response = await greptileService.baseQuery('summarize-diff-query', this.repoName, this.branchName, undefined, prompt);
+            const response = await greptileService.baseQuery(`summarize-diff-query-${latestCommit}`, this.repoName, this.branchName, undefined, prompt);
             return response.data.message;
         } catch (error) {
             console.error(`Failed to summarize the diff: ${error}`);
@@ -104,15 +104,17 @@ class CommitSummarizer {
                 console.log('Not enough commits found.');
                 return;
             }
+            const latestCommit = commits[0].sha;
+            const previousCommit = commits[0].sha;
 
             // Get diff between the two latest commits
-            const {diff, hasReadme} = await this.getDiffBetweenCommits(commits[0].sha, commits[1].sha);
-            const summary = await this.summarizeDiff(diff);
+            const {diff, hasReadme} = await this.getDiffBetweenCommits(latestCommit, previousCommit);
+            const summary = await this.summarizeDiff(diff, latestCommit);
 
             console.log('Summary of changes between last two commits:');
             console.log(summary);
 
-            return {summary, hasReadme}
+            return {summary, hasReadme, latestCommit}
         } catch (error) {
             console.error('Error summarizing README changes:', error);
         }
