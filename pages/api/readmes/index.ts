@@ -10,12 +10,12 @@ const greptileService = new GreptileService();
 
 export default async function handler(req: any, res: any) { // eslint-disable-line
   if (req.method === 'POST') {
-    const { repoId, githubUsername, branch } = req.body;
-    const commitSummarizer = new CommitSummarizer(repoId, branch)
+    const { repoName, githubUsername, branchName } = req.body;
+    const commitSummarizer = new CommitSummarizer(repoName, branchName)
 
     try {
         const retriever = new S3Retriever()
-        const pathPrefix = `${repoId}/${branch}/`
+        const pathPrefix = `${repoName}/${branchName}/`
         const lastS3file = await retriever.getLastReadme(pathPrefix)
         
 
@@ -31,14 +31,14 @@ export default async function handler(req: any, res: any) { // eslint-disable-li
         
         // check for last generated version of readme from DB. Check based on what is in s3
         // if no generated version, generate based on changes
-        const summaries = lastS3file || await greptileService.getReadmeRelatedSummaries(repoId, branch)
+        const summaries = lastS3file || await greptileService.getReadmeRelatedSummaries(repoName, branchName)
         const readmePrompt = `Given a list of change summaries/existing README.md, please provide a README.md file.
         Key considerations: prerequesites, How to setup, how to run, how to test, sample table relationships, architectural choices, possible enhancements
         \n\n
         These are the summaries/existing_readme: ${summaries}.
         This is the change summary of the last update made: ${lastChangeSummary}
         `
-        const readmeFromQuery = await greptileService.baseQuery('readme-history-query', repoId, branch, undefined, readmePrompt);
+        const readmeFromQuery = await greptileService.baseQuery('readme-history-query', repoName, branchName, undefined, readmePrompt);
         
         if(readmeFromQuery.data.sources) {
             const markdownText = formatMarkdown(readmeFromQuery.data.message)
@@ -52,7 +52,7 @@ export default async function handler(req: any, res: any) { // eslint-disable-li
             await fs.writeFile(filePath, markdownText, 'utf8');
 
             const s3uploader = new S3Uploader()
-            await s3uploader.uploadFile(markdownText, `${repoId}/${branch}/${fileName}`)
+            await s3uploader.uploadFile(markdownText, `${repoName}/${branchName}/${fileName}`)
         }
         
         res.status(200).json({data: "file created succefully"});  

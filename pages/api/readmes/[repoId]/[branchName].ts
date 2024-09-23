@@ -5,8 +5,8 @@ import { stringify } from 'flatted';
 export default async function handler(req: any, res: any) { // eslint-disable-line
   if (req.method === 'GET') {
     try {
-    const { repoId, branch } = req.query;
-    const pathPrefix = `${repoId}/${branch}/`
+    const { repoName, branchName } = req.query;
+    const pathPrefix = `${repoName}/${branchName}/`
     const retriever = new S3Retriever()
     const fileContents = await retriever.getLastReadme(pathPrefix)
     res.status(200).json({fileContents})

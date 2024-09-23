@@ -7,31 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model GreptileIndex {
-  id         Int       @id @default(autoincrement())
-  repoId     Int       @unique
-  branch     String
-  status     String   // e.g., "completed"
-  repo       Repo     @relation(fields: [repoId], references: [id])
-  createdAt  DateTime @default(now())
+model Repo {
+  id               Int      @id @default(autoincrement())
+  name             String   @unique // Repo name should be unique
+  backendLanguage  String?
+  frontendLanguage String?
+  branchNamees         Branch[] // A repo can have multiple branchNamees
 }
 
-model Repo {
-  id              Int          @id @default(autoincrement())
-  greptileIndex   GreptileIndex?
-  backendLanguage String?
-  frontendLanguage String?
-  metadata        Json
-  readmes         Readme[]
+model Branch {
+  id            Int             @id @default(autoincrement())
+  repoId        Int
+  repo          Repo            @relation(fields: [repoId], references: [id])
+  name          String // Name of the branchName
+  createdAt     DateTime        @default(now())
+  readmes       Readme[] // A branchName can have multiple readmes
+  GreptileIndex GreptileIndex[]
+
+  @@unique([repoId, name]) // Each repo can only have one branchName with a specific name
+}
+
+model GreptileIndex {
+  id        Int      @id @default(autoincrement())
+  branchId  Int // Foreign key for the relation to Branch
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  status    String   @default("submitted")
+  createdAt DateTime @default(now())
+
+  @@unique([branchId]) // Ensure that each branchId is unique)
 }
 
 model Readme {
-  id                  Int           @id @default(autoincrement())
-  generatedFromCommitHistory Boolean @default(false)  // Flag to track if generated from commit history
-  content             String
-  repo                Repo          @relation(fields: [repoId], references: [id])
-  repoId              Int
-  createdAt           DateTime      @default(now())
-  lastCommitSha       String?       // Last commit SHA or generated SHA
+  id                         Int      @id @default(autoincrement())
+  branchNameId                   Int // Foreign key for the relation to Branch
+  branchName                     Branch   @relation(fields: [branchNameId], references: [id])
+  content                    String
+  generatedFromCommitHistory Boolean  @default(false) // Flag to track if generated from commit history
+  createdAt                  DateTime @default(now())
+  lastCommitSha              String? // Last commit SHA or generated SHA
 }
-

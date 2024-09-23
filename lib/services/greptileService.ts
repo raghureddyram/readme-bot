@@ -9,14 +9,14 @@ class GreptileService {
         private githubUsername: string = process.env.GITHUB_USERNAME || ''
     ) {}
 
-    public async indexRepository(repoId: string, githubUsername: string = this.githubUsername, branch: string = 'main'): Promise<AxiosResponse<any, any>> {
+    public async indexRepository(repoName: string, githubUsername: string = this.githubUsername, branchName: string = 'main'): Promise<AxiosResponse<any, any>> {
         try {
             const response = await axios.post(
                 `${this.baseUrl}/repositories`,
                 {
                     remote: 'github',
-                    repository: `${githubUsername}/${repoId}`,
-                    branch,
+                    repository: `${githubUsername}/${repoName}`,
+                    branchName,
                 },
                 {
                     headers: {
@@ -32,8 +32,8 @@ class GreptileService {
         }
     }
 
-    public async checkIndexStatus(repoId: string, githubUsername: string = this.githubUsername, branch: string = 'main'): Promise<AxiosResponse<any, any>> {
-        const greptileIdentifier = encodeURIComponent(`github:${branch}:${githubUsername}/${repoId}`);
+    public async checkIndexStatus(repoName: string, githubUsername: string = this.githubUsername, branchName: string = 'main'): Promise<AxiosResponse<any, any>> {
+        const greptileIdentifier = encodeURIComponent(`github:${branchName}:${githubUsername}/${repoName}`);
         try {
             const response = await axios.get(`${this.baseUrl}/repositories/${greptileIdentifier}`, {
                 headers: {
@@ -48,10 +48,10 @@ class GreptileService {
         }
     }
 
-    public async getReadmeRelatedSummaries(repoId: string, branch: string = 'main', githubUsername: string = this.githubUsername): Promise<AxiosResponse<any, any>> {
+    public async getReadmeRelatedSummaries(repoName: string, branchName: string = 'main', githubUsername: string = this.githubUsername): Promise<AxiosResponse<any, any>> {
         const greptileQuery = "Show me changes a developer would like to know about, ie what should go into the README.md";
         try {
-            const readmeFromQuery = await this.baseQuery('readme-related-summaries', repoId, branch, githubUsername, greptileQuery);
+            const readmeFromQuery = await this.baseQuery('readme-related-summaries', repoName, branchName, githubUsername, greptileQuery);
             const summaries = readmeFromQuery.data?.sources.map((source: any) => (source.summary) )
             return summaries;
         } catch (error: any) {
@@ -60,7 +60,7 @@ class GreptileService {
         }
     }
 
-    public async baseQuery(greptileQueryIdentifier: string, repoId: string, branch: string = 'main', githubUsername: string = this.githubUsername, query: string = ''): Promise<AxiosResponse<any, any>> {
+    public async baseQuery(greptileQueryIdentifier: string, repoName: string, branchName: string = 'main', githubUsername: string = this.githubUsername, query: string = ''): Promise<AxiosResponse<any, any>> {
         try {
             const queryPayload = {
                 messages: [
@@ -73,8 +73,8 @@ class GreptileService {
                 repositories: [
                     {
                         remote: 'github',
-                        repository: `${githubUsername}/${repoId}`,
-                        branch,
+                        repository: `${githubUsername}/${repoName}`,
+                        branchName,
                     },
                 ],
             };
