@@ -48,7 +48,7 @@ class GreptileService {
         }
     }
 
-    public async getReadmeRelatedSummaries(repoName: string, latestCommit?: string, branchName: string = 'main', githubUsername: string = this.githubUsername): Promise<AxiosResponse<any, any>> {
+    public async getReadmeRelatedSummaries(repoName: string, branchName: string, latestCommit?: string, githubUsername: string = this.githubUsername): Promise<AxiosResponse<any, any>> {
         const greptileQuery = "Show me changes a developer would like to know about, ie what should go into the README.md";
         try {
             const readmeFromQuery = await this.baseQuery(`readme-related-summaries${latestCommit}`, repoName, branchName, githubUsername, greptileQuery);
