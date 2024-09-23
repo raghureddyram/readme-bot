@@ -1,3 +1,4 @@
+import { NextApiRequest, NextApiResponse } from 'next';
 import GreptileService from '../../../lib/services/greptileService';
 const greptileService = new GreptileService();
 import { createGreptileIndex, getGreptileIndex, updateGreptileIndexStatus } from "./_repositories/GreptileIndex"
@@ -25,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Step 4: If the index is not completed, trigger non-blocking indexing
       if (response.data.status !== 'completed') {
         greptileService.indexRepository(repoName, undefined, branchName); // Non-blocking
-      } else if(greptileIndex && greptileIndex.id && greptileIndex.status !== 'completed') {
+      } else if(greptileIndex && greptileIndex.status !== 'completed') {
         // Step 5: If response is complete, update the GreptileIndex status in the database
         await updateGreptileIndexStatus(greptileIndex.id, response.data.status);
       }
