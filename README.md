@@ -46,18 +46,21 @@ Readme-Bot is a Next.js application designed to automate the process of generati
    npm run dev
 
    * generate a greptile index. 
-
+```
    curl -X POST http://localhost:3000/api/greptile-indexes \
     -H "Content-Type: application/json" \
     -d '{ "repoName": "readme-bot", "branchName": "main"}'
-
-   * generate a readme. 
+```
+   * generate a readme.
+```
    curl -X POST http://localhost:3000/api/readmes \
     -H "Content-Type: application/json" \
     -d '{ "repoName": "readme-bot", "branchName": "main"}'
-   
+```
    * get a readme
+```
    curl -X GET http://localhost:3000/api/readmes/readme-bot/main
+```
    
 
 2. For production:
