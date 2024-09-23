@@ -46,7 +46,7 @@ export default async function handler(req: any, res: any) {
         const lastChangeSummary = result.summary;
 
         // Check for the last generated version of the readme from DB. If no generated version exists, generate one.
-        const summaries = lastS3file || await greptileService.getReadmeRelatedSummaries(repoName, branchName, result.latestCommit);
+        const summaries = await greptileService.getReadmeRelatedSummaries(repoName, branchName, result.latestCommit);
         const readmePrompt = `Given a list of change summaries/existing README.md, please provide a README.md file.
         Key considerations: prerequesites, How to setup, how to run, how to test, sample table relationships, architectural choices, possible enhancements.
         \n\n
