@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import GreptileService from '../../../lib/services/greptileService';
 const greptileService = new GreptileService();
-import { createGreptileIndex, getGreptileIndex, updateGreptileIndexStatus } from "./_repositories/GreptileIndex"
+import { findOrCreateGreptileIndex, getGreptileIndex, updateGreptileIndexStatus } from "../_repositories/GreptileIndex"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -13,20 +13,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       // Step 1: Check if the GreptileIndex already exists
-      let greptileIndex = await getGreptileIndex(repoName, branchName);
-      
-      // Step 2: If the GreptileIndex doesn't exist, create it
-      if (!greptileIndex) {
-        greptileIndex = await createGreptileIndex(repoName, branchName);
-      }
+      const greptileIndex = await findOrCreateGreptileIndex(repoName, branchName);
 
       // Step 3: Check index status from the Greptile service
       const response = await greptileService.checkIndexStatus(repoName, undefined, branchName);
 
       // Step 4: If the index is not completed, trigger non-blocking indexing
       if (response.data.status !== 'completed') {
+
         greptileService.indexRepository(repoName, undefined, branchName); // Non-blocking
       } else if(greptileIndex && greptileIndex.status !== 'completed') {
+
         // Step 5: If response is complete, update the GreptileIndex status in the database
         await updateGreptileIndexStatus(greptileIndex.id, response.data.status);
       }

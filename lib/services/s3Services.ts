@@ -4,9 +4,11 @@ import { Readable } from "stream";
 export class S3Uploader {
   private s3Client: S3Client;
   private bucketName: string;
+  private region: string;
 
   constructor(bucketName: string = "readme-bot", region: string = "us-west-1") {
     this.bucketName = bucketName;
+    this.region = region
     this.s3Client = new S3Client({
       region,
       credentials: {
@@ -16,7 +18,7 @@ export class S3Uploader {
     });
   }
 
-  public async uploadFile(markdownContent: string, key: string): Promise<void> {
+  public async uploadFile(markdownContent: string, key: string): Promise<string | void> {
     try {
       const markdownBuffer = Buffer.from(markdownContent); // Convert markdown content to buffer
 
@@ -29,8 +31,14 @@ export class S3Uploader {
 
       const command = new PutObjectCommand(uploadParams);
       const data = await this.s3Client.send(command);
+      if(data){
+        const s3Url = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${key}`;
+        console.log("File uploaded successfully", s3Url);
+        return s3Url;
+      } else {
+        throw new Error("No data returned from S3");
+      }
 
-      console.log("File uploaded successfully", data);
     } catch (err) {
       console.error("Error uploading file to S3", err);
     }
@@ -87,6 +95,32 @@ export class S3Retriever {
       console.error("Error retrieving last README file from S3", err);
       return null
     }
+  }
+
+  // Retrieve file content from S3 using the file URL
+  public async getFileFromUrl(s3Url: string): Promise<string | null> {
+    try {
+      const key = this.extractKeyFromUrl(s3Url);
+      const getCommand = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      const getData = await this.s3Client.send(getCommand);
+      const fileStream = getData.Body as Readable;
+
+      const fileContent = await this.streamToString(fileStream);
+      return fileContent;
+    } catch (err) {
+      console.error("Error retrieving file from S3", err);
+      return null;
+    }
+  }
+
+  // Helper function to extract the S3 key from a URL
+  private extractKeyFromUrl(s3Url: string): string {
+    const url = new URL(s3Url);
+    return url.pathname.substring(1); // Remove leading '/' from pathname
   }
 
   // Helper function to convert stream to string

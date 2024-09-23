@@ -4,11 +4,13 @@ import GreptileService from './greptileService';
 type CommitDiff = {
     diff: string,
     hasReadme: boolean,
+    latestCommit: string,
 }
 
 type GeneratedSummary = {
     summary: string,
-    hasReadme: boolean
+    hasReadme: boolean,
+    latestCommit: string,
 }
 class CommitSummarizer {
     private readonly githubApiUrl: string = 'https://api.github.com';
@@ -71,9 +73,9 @@ class CommitSummarizer {
                 const files = response.data.files;
                 const hasReadme = files.some((file: any) => file.filename.includes('README.md'));
                 
-                return { diff: diffResponse.data, hasReadme }
+                return { diff: diffResponse.data, hasReadme, latestCommit }
             }
-            return { diff: '', hasReadme: false};
+            return { diff: '', hasReadme: false, latestCommit};
         } catch (error) {
             console.error(`Failed to get diff between commits: ${error}`);
             throw error;

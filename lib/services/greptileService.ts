@@ -16,7 +16,7 @@ class GreptileService {
                 {
                     remote: 'github',
                     repository: `${githubUsername}/${repoName}`,
-                    branchName,
+                    branch: branchName,
                 },
                 {
                     headers: {
@@ -74,7 +74,7 @@ class GreptileService {
                     {
                         remote: 'github',
                         repository: `${githubUsername}/${repoName}`,
-                        branchName,
+                        branch: branchName,
                     },
                 ],
             };

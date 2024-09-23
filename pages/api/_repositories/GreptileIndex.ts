@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import { findBranch, createBranch } from './Branch';
+import { findRepo } from './Repo';
 
 const prisma = new PrismaClient();
 
-export async function createGreptileIndex(repoName: string, branchName: string, status: string = 'submitted') {
+export async function findOrCreateGreptileIndex(repoName: string, branchName: string, status: string = 'submitted') {
   try {
-    let repo = await prisma.repo.findUnique({
-      where: { name: repoName },
-    });
+    let repo = await findRepo(repoName)
 
     if (!repo) {
       repo = await prisma.repo.create({
@@ -15,31 +15,28 @@ export async function createGreptileIndex(repoName: string, branchName: string, 
     }
 
     // Step 2: Find or create the Branch
-    let branch = await prisma.branch.findUnique({
+    let branch = await findBranch(repo.id, branchName)
+
+    if (!branch) {
+      branch = await createBranch(repo.id, branchName);
+    }
+
+    // Step 3: Create a GreptileIndex for the Branch
+    let greptileIndex = await prisma.greptileIndex.findUnique({
       where: {
-        repoId_name: {
-          repoId: repo.id,
-          name: branchName,
-        },
+        branchId: branch.id
       },
     });
 
-    if (!branch) {
-      branch = await prisma.branch.create({
+    if(!greptileIndex){
+      greptileIndex = await prisma.greptileIndex.create({
         data: {
-          repoId: repo.id,
-          name: branchName,
+          branchId: branch.id,
+          status,
         },
       });
     }
 
-    // Step 3: Create a GreptileIndex for the Branch
-    const greptileIndex = await prisma.greptileIndex.create({
-      data: {
-        branchId: branch.id,
-        status,
-      },
-    });
     return greptileIndex;
   }catch(error){
     console.error("Error creating GreptileIndex:", error);
